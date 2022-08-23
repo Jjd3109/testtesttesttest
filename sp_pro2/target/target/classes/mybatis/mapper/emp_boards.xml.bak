@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="empBoardMapper">
+	<select id="getNextSeq" resultType="_int">
+		SELECT EMP_BOARDS_SEQ.NEXTVAL FROM DUAL
+	</select>
+	<insert id="insertData" parameterType="empBoardDto">
+		INSERT INTO EMP_BOARDS(ID, TITLE, CONTENT, EMPID, CREATEDATE)
+		     VALUES(#{id}, #{title}, #{content}, #{empId}, SYSDATE)
+	</insert>
+	<select id="selectData" resultType="empBoardDto">
+		SELECT ID, TITLE, CONTENT
+		     , EMPID, CREATEDATE
+		     , VIEW_CNT AS viewCnt
+		     , "LIKE"
+		  FROM EMP_BOARDS
+		 WHERE ID = #{id}
+	</select>
+	<update id="updateViewCnt" parameterType="empBoardDto">
+		UPDATE EMP_BOARDS
+		   SET VIEW_CNT = #{viewCnt} + 1
+		 WHERE ID = #{id}
+	</update>
+	<update id="updateLike" parameterType="empBoardDto">
+		UPDATE EMP_BOARDS
+		   SET "LIKE" = #{like}
+		 WHERE ID= #{id}
+	</update>
+	<select id="selectStatics" parameterType="empBoardStaticsDto" resultType="empBoardStaticsDto">
+		SELECT ID, EMPID, BID
+		     , VIEWED
+		     , LATEST_VIEW_DATE AS latestViewDate
+		     , LIKED
+		  FROM EMP_BOARDS_STATICS
+		 WHERE EMPID = #{empId}
+		   AND BID = #{bId}
+	</select>
+	<insert id="insertStatics" parameterType="empBoardStaticsDto">
+		INSERT INTO EMP_BOARDS_STATICS
+		     VALUES(EMP_BOARDS_STATICS_SEQ.NEXTVAL
+		          , #{empId}, #{bId}, 'Y', SYSDATE, 'N')
+	</insert>
+	<update id="updateStatics" parameterType="empBoardStaticsDto">
+		UPDATE EMP_BOARDS_STATICS
+		   SET LATEST_VIEW_DATE = SYSDATE
+		 WHERE ID = #{id}
+	</update>
+	<update id="updateStaticsLike" parameterType="empBoardStaticsDto">
+		UPDATE EMP_BOARDS_STATICS
+		<choose>
+			<when test="liked">
+				SET LIKED = 'Y'
+			</when>
+			<otherwise>
+				SET LIKED = 'N'
+			</otherwise>
+		</choose>
+		 WHERE ID = #{id}
+	</update>
+	<select id="selectAll" resultType="empBoardDto">
+		SELECT B.ID, B.TITLE, B.CONTENT
+		     , B.EMPID
+		     , E.FIRST_NAME || ' ' || E.LAST_NAME AS EMPNAME
+		     , B.CREATEDATE
+		     , B.VIEW_CNT AS viewCnt
+		     , B."LIKE"
+		  FROM EMP_BOARDS B
+		  JOIN EMPLOYEES E
+		    ON B.EMPID = E.EMPLOYEE_ID
+		 ORDER BY B.ID DESC
+	</select>
+	<delete id="deleteStaticsData">
+		DELETE FROM EMP_BOARDS_STATICS
+		 WHERE BID = #{bId}
+	</delete>
+	<delete id="deleteData">
+		DELETE FROM EMP_BOARDS
+		 WHERE ID = #{id}
+	</delete>
+	<update id="updateData" parameterType="empBoardDto">
+		UPDATE EMP_BOARDS
+		   SET TITLE = #{title}
+		     , CONTENT = #{content}
+		 WHERE ID = #{id}
+	</update>
+</mapper>

@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="empsMapper">
+	<resultMap type="map" id="mapSalary">
+		<result column="minSalary" property="minSalary" javaType="int" />
+		<result column="maxSalary" property="maxSalary" javaType="int" />
+	</resultMap>
+	<delete id="deleteId">
+		DELETE FROM EMPLOYEES
+		 WHERE EMPLOYEE_ID = #{id}
+	</delete>
+	<select id="checkSalaryRange" resultMap="mapSalary">
+		SELECT MIN_SALARY AS minSalary
+		     , MAX_SALARY AS maxSalary
+		  FROM JOBS
+		 WHERE JOB_ID = #{id}
+	</select>
+	<select id="selectId" resultType="empsDto">
+		SELECT E.EMPLOYEE_ID AS empId
+		     , CONCAT(FIRST_NAME, ' ' || LAST_NAME) AS empName
+		     , CONCAT(E.EMAIL, '@emp.com') AS email
+		     , J.JOB_TITLE AS jobName
+		     , J.JOB_ID AS jobId
+		     , D.DEPARTMENT_NAME AS deptName
+		     , D.DEPARTMENT_ID AS deptId
+		  FROM EMPLOYEES E
+		  JOIN JOBS J
+		    ON E.JOB_ID = J.JOB_ID
+		  JOIN DEPARTMENTS D
+		    ON E.DEPARTMENT_ID = D.DEPARTMENT_ID
+		 WHERE E.EMPLOYEE_ID = #{id}
+	</select>
+	<insert id="insertEmp" parameterType="empsDto">
+		INSERT INTO 
+		  EMPLOYEES(EMPLOYEE_ID
+		          , FIRST_NAME
+		          , LAST_NAME
+		          , EMAIL
+		          , JOB_ID
+		          , DEPARTMENT_ID
+		          , HIRE_DATE)
+		     VALUES(#{empId}
+		          , SUBSTR(#{empName}, 1, INSTR(#{empName}, ' ') - 1)
+		          , SUBSTR(#{empName}, INSTR(#{empName}, ' ') + 1, LENGTH(#{empName}))
+		          , SUBSTR(#{email}, 1, INSTR(#{email}, '@') - 1)
+		          , #{jobId}
+		          , #{deptId}
+		          , SYSDATE)
+	</insert>
+	<select id="selectAll" resultType="empsDto">
+		SELECT E.EMPLOYEE_ID AS empId
+		     , CONCAT(FIRST_NAME, ' ' || LAST_NAME) AS empName
+		     , CONCAT(E.EMAIL, '@emp.com') AS email
+		     , J.JOB_TITLE AS jobName
+		     , J.JOB_ID AS jobId
+		     , D.DEPARTMENT_NAME AS deptName
+		     , D.DEPARTMENT_ID AS deptId
+		  FROM EMPLOYEES E
+		  JOIN JOBS J
+		    ON E.JOB_ID = J.JOB_ID
+		  JOIN DEPARTMENTS D
+		    ON E.DEPARTMENT_ID = D.DEPARTMENT_ID
+	</select>
+	<select id="selectPage" parameterType="map" resultType="empsDto">
+		SELECT RN
+		     , empId
+		     , empName
+		     , email
+		     , jobName
+		     , jobId
+		     , deptName
+		     , deptId
+		  FROM (SELECT ROWNUM AS RN
+		  			 , E.EMPLOYEE_ID AS empId
+				     , CONCAT(FIRST_NAME, ' ' || LAST_NAME) AS empName
+				     , CONCAT(E.EMAIL, '@emp.com') AS email
+				     , J.JOB_TITLE AS jobName
+				     , J.JOB_ID AS jobId
+				     , D.DEPARTMENT_NAME AS deptName
+				     , D.DEPARTMENT_ID AS deptId
+				  FROM EMPLOYEES E
+				  JOIN JOBS J
+				    ON E.JOB_ID = J.JOB_ID
+				  JOIN DEPARTMENTS D
+				    ON E.DEPARTMENT_ID = D.DEPARTMENT_ID
+				 <if test="deptId != 10">
+					 WHERE E.DEPARTMENT_ID = #{deptId}
+				 </if>
+			    )
+		 WHERE RN BETWEEN #{start} AND #{end}
+	</select>
+	<select id="rowCount" resultType="_int">
+		SELECT COUNT(*)
+		  FROM EMPLOYEES E
+		  JOIN JOBS J
+		    ON E.JOB_ID = J.JOB_ID
+		  JOIN DEPARTMENTS D
+		    ON E.DEPARTMENT_ID = D.DEPARTMENT_ID
+		<if test="deptId != 10">
+			WHERE E.DEPARTMENT_ID = #{id}
+		</if>
+	</select>
+	<select id="selectEmpDetail" parameterType="_int" resultType="empsDetailDto">
+		SELECT EMPLOYEE_ID AS empId
+		     , HIRE_DATE AS hireDate
+		     , PHONE_NUMBER AS phone
+		     , SALARY AS salary
+		     , COMMISSION_PCT AS commission
+		  FROM EMPLOYEES
+		 WHERE EMPLOYEE_ID = #{id}
+	</select>
+	<update id="updateEmp" parameterType="empsDto">
+		UPDATE EMPLOYEES
+		   SET EMAIL = SUBSTR(#{email}, 1, INSTR(#{email}, '@emp.com') - 1)
+		     , FIRST_NAME = SUBSTR(#{empName}, 1, INSTR(#{empName}, ' ') - 1)
+		     , LAST_NAME = SUBSTR(#{empName}, INSTR(#{empName}, ' ') + 1, LENGTH(#{empName}))
+		     , JOB_ID = #{jobId}
+		     , DEPARTMENT_ID = #{deptId}
+		 WHERE EMPLOYEE_ID = #{empId}
+	</update>
+	<update id="updateEmpDetail" parameterType="empsDetailDto">
+		UPDATE EMPLOYEES
+		   SET PHONE_NUMBER = #{phone}
+		     , SALARY = #{salary}
+		     , COMMISSION_PCT = #{commission}
+		     , HIRE_DATE = #{hireDate}
+		 WHERE EMPLOYEE_ID = #{empId}
+	</update>
+</mapper>

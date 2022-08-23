@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="loginMapper">
+	<select id="selectPerm" resultType="permDto">
+		SELECT * FROM PERMISSIONS
+		 WHERE EMPID = #{id}
+	</select>
+	<select id="selectLogin" parameterType="map" resultType="empsDto">
+		SELECT E.EMPLOYEE_ID AS empId
+		     , CONCAT(FIRST_NAME, ' ' || LAST_NAME) AS empName
+		     , CONCAT(E.EMAIL, '@emp.com') AS email
+		     , J.JOB_TITLE AS jobName
+		     , J.JOB_ID AS jobId
+		     , D.DEPARTMENT_NAME AS deptName
+		     , D.DEPARTMENT_ID AS deptId
+		  FROM EMPLOYEES E
+		  JOIN JOBS J
+		    ON E.JOB_ID = J.JOB_ID
+		  JOIN DEPARTMENTS D
+		    ON E.DEPARTMENT_ID = D.DEPARTMENT_ID
+		 WHERE E.EMPLOYEE_ID = #{empId}
+		   AND E.DEPARTMENT_ID = #{deptId}
+		   AND E.FIRST_NAME = #{firstName}
+		   AND E.LAST_NAME = #{lastName}
+	</select>
+</mapper>
